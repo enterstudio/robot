@@ -408,8 +408,8 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     /**
      * @see #getModelStoredEventInstance()
      */
-    public ModelChangedEvent<T, BaseCollection<T>> getModelChangeEventInstance() {
-        return new ModelChangedEvent<T, BaseCollection<T>>(this);
+    public ModelChangedEvent getModelChangeEventInstance() {
+        return new ModelChangedEvent();
     }
 
     /**
@@ -418,8 +418,8 @@ public abstract class BaseCollection<T> implements Iterable<T> {
      *
      * @return return a new instance of ModelStoredEvent
      */
-    public ModelStoredEvent<T, BaseCollection<T>> getModelStoredEventInstance() {
-        return new ModelStoredEvent<T, BaseCollection<T>>(this);
+    public ModelStoredEvent getModelStoredEventInstance() {
+        return new ModelStoredEvent();
     }
 
     @Override
@@ -444,30 +444,16 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     /**
      * This event should be published when the collection's underlying data structure is modified.
      *
-     * @param <T>
-     * @param <K>
      * @author fernandinho
      */
-    public static class ModelChangedEvent<T, K extends BaseCollection<T>> extends DataEvent<K> {
-
-        public ModelChangedEvent(K data) {
-            super(data);
-        }
-    }
+    public static class ModelChangedEvent {}
 
     /**
      * This event should be published when the collection is successfully stored in disk (actually in the {@link CollectionStorage}).
      *
-     * @param <T>
-     * @param <K>
      * @author fernandinho
      */
-    public static class ModelStoredEvent<T, K extends BaseCollection<T>> extends DataEvent<K> {
-
-        public ModelStoredEvent(K data) {
-            super(data);
-        }
-    }
+    public static class ModelStoredEvent{}
 
     /**
      * Interface that defines how this collection is persisted in disk. When implementing a custom {@link BaseCollection}
