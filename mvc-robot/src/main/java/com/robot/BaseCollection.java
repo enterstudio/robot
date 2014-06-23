@@ -53,21 +53,6 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * <p>
-     * Override this method to specify the way your Collection synchronizes. By default
-     * All elements in the current BaseCollection that match those in {@code data} will be removed and
-     * then re-added with the elements in data (using {@link #updateAll(java.util.Collection, boolean)}
-     * </p>
-     * <p>
-     *  Matching between elements is done using the equals operator.
-     * </p>
-     * @param data
-     */
-    protected void onSyncFinish(Collection<T> data) {
-        updateAll(data, true);
-    }
-
-    /**
      * Shorthand method for removing the given data and then adding it again.
      *
      * Object equality comparison is done using the {@link #equals(Object)} method
