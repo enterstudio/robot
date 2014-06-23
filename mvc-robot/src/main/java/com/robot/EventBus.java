@@ -3,7 +3,6 @@ package com.robot;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.authy.authy.util.Log;
 import com.squareup.otto.Bus;
 
 public class EventBus extends Bus {
@@ -16,7 +15,6 @@ public class EventBus extends Bus {
 
     @Override
     public void post(final Object event) {
-        Log.d(TAG, "Posting " + event);
         if (Looper.myLooper() == Looper.getMainLooper()) {
             super.post(event);
         } else {
