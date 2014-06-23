@@ -5,13 +5,12 @@ import android.os.Looper;
 
 import com.squareup.otto.Bus;
 
+/**
+ * A subclass of {@link com.squareup.otto.Bus otto.Bus} that posts every event on the Android UI thread.
+ */
 public class EventBus extends Bus {
 
-    private final static String TAG = "EventBus";
-    private static EventBus instance;
-
     private final Handler mainThread = new Handler(Looper.getMainLooper());
-
 
     @Override
     public void post(final Object event) {
@@ -25,12 +24,5 @@ public class EventBus extends Bus {
                 }
             });
         }
-    }
-
-    public static EventBus get() {
-        if (instance == null) {
-            instance = new EventBus();
-        }
-        return instance;
     }
 }
