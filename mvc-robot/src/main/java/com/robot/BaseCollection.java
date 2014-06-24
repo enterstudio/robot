@@ -48,6 +48,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     protected final Object lock = new Object();
 
     public BaseCollection() {
+        Collections.synchronizedList(null);
         list = new ArrayList<T>();
     }
 
@@ -182,29 +183,6 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * When calling this method from a subclass it is recommended that you create a new method <code>sort()</code>
-     * that calls {@link #sort(java.util.Comparator)} with your {@link BaseCollection} subclass' default {@link java.util.Comparator}
-     *
-     * @param comparator the comparator used to sort the inner collection
-     */
-    public void sort(Comparator<T> comparator) {
-        Collections.sort(list, comparator);
-    }
-
-    /**
-     * this means that the BaseCollection is iterable, i.e. one can write
-     * <code>
-     * for(T t: baseCollection){
-     * //do stuff
-     * }
-     * </code>
-     */
-    @Override
-    public Iterator<T> iterator() {
-        return list.iterator();
-    }
-
-    /**
      * @param initialValue the initial value to be reduced
      * @param reducer      an interface used to reduce the list
      * @return the calculated reductions
@@ -238,6 +216,29 @@ public abstract class BaseCollection<T> implements Iterable<T> {
      */
     public T filterFirst(Filter<T>... filters) {
         return filterFirst(list, filters);
+    }
+
+    /**
+     * When calling this method from a subclass it is recommended that you create a new method <code>sort()</code>
+     * that calls {@link #sort(java.util.Comparator)} with your {@link BaseCollection} subclass' default {@link java.util.Comparator}
+     *
+     * @param comparator the comparator used to sort the inner collection
+     */
+    public void sort(Comparator<T> comparator) {
+        Collections.sort(list, comparator);
+    }
+
+    /**
+     * this means that the BaseCollection is iterable, i.e. one can write
+     * <code>
+     * for(T t: baseCollection){
+     * //do stuff
+     * }
+     * </code>
+     */
+    @Override
+    public Iterator<T> iterator() {
+        return list.iterator();
     }
 
     /**
@@ -323,26 +324,9 @@ public abstract class BaseCollection<T> implements Iterable<T> {
         return "[" + BaseCollection.class.getSimpleName() + " (" + size() + "): " + list + "]";
     }
 
-    /**
-     * This event should be published whenever the collection captures an error, i.e. a disk error or network error when
-     * saving the collection remotely or locally.
-     *
-     * @author fernandinho
-     */
-    public static class ErrorCapturedEvent extends DataEvent<Throwable> {
-
-        public ErrorCapturedEvent(Throwable data) {
-            super(data);
-        }
-
-    }
-
-    /**
-     * This event should be published when the collection's underlying data structure is modified.
-     *
-     * @author fernandinho
-     */
-    public static class ModelChangedEvent {}
+    //======================================================================
+    // Static methods
+    //======================================================================
 
     /**
      * Maps every single object in a collection to another object and returns the mapped collection.
@@ -413,6 +397,12 @@ public abstract class BaseCollection<T> implements Iterable<T> {
         return result;
     }
 
+    //======================================================================
+    // Inner classes and interfaces
+    // Unless absolutely necessary all inner classes must be static to
+    // avoid accidental coupling
+    //======================================================================
+
     /**
      * Interface used to map a collection to another
      * @param <T> the map's input type
@@ -454,4 +444,25 @@ public abstract class BaseCollection<T> implements Iterable<T> {
             this.value = value;
         }
     }
+
+    /**
+     * This event should be published whenever the collection captures an error, i.e. a disk error or network error when
+     * saving the collection remotely or locally.
+     *
+     * @author fernandinho
+     */
+    public static class ErrorCapturedEvent extends DataEvent<Throwable> {
+
+        public ErrorCapturedEvent(Throwable data) {
+            super(data);
+        }
+
+    }
+
+    /**
+     * This event should be published when the collection's underlying data structure is modified.
+     *
+     * @author fernandinho
+     */
+    public static class ModelChangedEvent {}
 }
