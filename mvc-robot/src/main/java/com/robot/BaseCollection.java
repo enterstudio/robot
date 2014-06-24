@@ -112,9 +112,9 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * similar to {@link #add(Object, boolean)} but does not publish an event
+     * similar to {@link #add(Object, boolean)} but publishes an event. This is a shorthand for {@link #add(Object, boolean) add(someObject, true)}
      *
-     * @param el
+     * @param el the object that will be added
      */
     public void add(T el) {
         add(el, true);
@@ -261,25 +261,11 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * Similar to {@link #filter(Filter...)} but it only returns the first element that matches all filters
-     *
-     * @param filters
-     * @return
+     * Same behaviour to calling {@link #filterFirst(java.util.Collection, com.robot.BaseCollection.Filter[])} on the contents of this BaseCollection
+     * @see #filterFirst(java.util.Collection, com.robot.BaseCollection.Filter[])
      */
     public T filterFirst(Filter<T>... filters) {
-        for (T el : list) {
-            boolean passedAllFilters = true;
-            for (Filter<T> filter : filters) {
-                if (!filter.include(el)) {
-                    passedAllFilters = false;
-                    break;
-                }
-            }
-            if (passedAllFilters) {
-                return el;
-            }
-        }
-        return null;
+        return filterFirst(list, filters);
     }
 
     /**
@@ -426,13 +412,18 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     /**
      * Interface used for filtering elements inside the {@link BaseCollection}
      *
-     * @param <T>
+     * @param <T> the type of object to filter
      * @author fernandinho
      */
     public interface Filter<T> {
         public boolean include(T el);
     }
 
+    /**
+     * Interface used to map a collection to another
+     * @param <T> the map's input type
+     * @param <K> the map's output type
+     */
     public interface Mapper<T, K> {
         public K map(T el);
     }
@@ -446,13 +437,26 @@ public abstract class BaseCollection<T> implements Iterable<T> {
         return result;
     }
 
-    public static <T, K> List<K> filter(Collection<T> collection, Mapper<T, K> mapper) {
-        List<K> result = new ArrayList<K>();
+    /**
+     * Similar to {@link #filter(Filter...)} but it only returns the first element that matches all filters
+     *
+     * @param filters a list of filters
+     * @return returns the first element that matches every single filter. The notion of 'first' depends on the {@code collection}'s iterator.
+     */
+    public static <T> T filterFirst(Collection<T> collection, Filter<T>... filters) {
         for (T el : collection) {
-            K mapped = mapper.map(el);
-            result.add(mapped);
+            boolean passedAllFilters = true;
+            for (Filter<T> filter : filters) {
+                if (!filter.include(el)) {
+                    passedAllFilters = false;
+                    break;
+                }
+            }
+            if (passedAllFilters) {
+                return el;
+            }
         }
-        return result;
+        return null;
     }
 
     public interface Reducer<T, K> {
