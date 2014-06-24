@@ -94,7 +94,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
      *                      will be notified even if {@code notifyChanges} is true
      */
     public void removeAll(Collection<? extends T> els, boolean notifyChanges) {
-        boolean changes = false;
+        boolean changes;
         synchronized (lock) {
             changes = list.removeAll(els);
         }
@@ -102,12 +102,23 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * Removes all data in the inner data structure.
+     * Removes all data in the inner data structure. Notifies changes if there is a change in the number of elements in the colleciton
+     * and {@code notifyChanges} is {@code true}
      */
-    public void clear() {
+    public void clear(boolean notifyChanges) {
+        int size = size();
         synchronized (lock) {
             list.clear();
         }
+        if(size() != size && notifyChanges) notifyChanges();
+    }
+
+    /**
+     * Clears the collection and notifies if any changes
+     * @see #clear(boolean)
+     */
+    public void clear(){
+        clear(true);
     }
 
     /**
