@@ -13,7 +13,7 @@ import java.util.List;
  * The {@link BaseCollection} class is an abstraction for a model that can be stored locally and sync'd remotely.
  * It provides several methods to make asynchronous operations easier by depending on an event bus.<br>
  * <br>
- * By default a {@link BaseCollection} provides 2 types of events, {@link ModelChangedEvent} and {@link ModelStoredEvent}<br>
+ * By default a {@link BaseCollection} provides 1 types of events, the {@link ModelChangedEvent} <br>
  * <br>
  * The {@link ModelChangedEvent} is published whenever the underlying data structure is modified. To subscribe to this event you
  * must do 2 things. The first one is override the {@link #getModelChangeEventInstance()} to return a subclass of ModelChangedEvent,
@@ -151,17 +151,6 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * Allows operations on a loaded element before it has been added. This method by default does not
-     * do anything i.e it just returns the elements parameter but it allows subclasses to do
-     * additional operations on the underlying collection.
-     *
-     * @param elements
-     */
-    public Collection<T> afterLoad(Collection<T> elements) {
-        return elements;
-    }
-
-    /**
      * Maps every element contained in the collection using a {@link Mapper}
      *
      * @param mapper maps an element of type T to an element of type K
@@ -276,13 +265,6 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * Publishes a {@link ModelStoredEvent}
-     */
-    public void notifySave() {
-        notifyEvent(getModelStoredEventInstance());
-    }
-
-    /**
      * publishes an {@link ErrorCapturedEvent}
      *
      * @param error
@@ -340,21 +322,18 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * @see #getModelStoredEventInstance()
+     * When listening to changes from this collection using the event bus it is necessary to override this method and return
+     * a suitable ModelChangedEvent subclass. As a simple example, consider you have a {@code UsersBaseCollection} and after adding
+     * a user a ModelChangedEvent is published. you could listen to the {@code ModelChangedEvent} but this will be called for every
+     * BaseCollection, it would instead be better to override this method and return a {@code UsersChangedEvent}, this way you can register
+     * to changes of only this {@code UsersBaseCollection}
+     *
+     * @return returns a new instance of ModelChangedEvent
      */
     public ModelChangedEvent getModelChangeEventInstance() {
         return new ModelChangedEvent();
     }
 
-    /**
-     * Subclasses that want to publish more specific events can override this method and return a {@link ModelStoredEvent} subclass
-     * i.e. a StringBaseCollection could override this method to return a StringCollectionStored event.
-     *
-     * @return return a new instance of ModelStoredEvent
-     */
-    public ModelStoredEvent getModelStoredEventInstance() {
-        return new ModelStoredEvent();
-    }
 
     @Override
     public String toString() {
@@ -383,51 +362,16 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     public static class ModelChangedEvent {}
 
     /**
-     * This event should be published when the collection is successfully stored in disk (actually in the {@link CollectionStorage}).
+     * Maps every single object in a collection to another object and returns the mapped collection.
      *
-     * @author fernandinho
-     */
-    public static class ModelStoredEvent{}
-
-    /**
-     * Interface that defines how this collection is persisted in disk. When implementing a custom {@link BaseCollection}
-     * you can create your own 'storage' mediums. This also simplifies testing by allowing subclasses to have a RAM storage.
+     * This method takes every element in {@code collection} and applies the {@code mapper} function.
      *
-     * @param <K>
-     * @author fernandinho
+     * @param collection the input collection
+     * @param mapper the mapping function that takes an element and applies a transformation to the object
+     * @param <T> the type of the elements in the input collection
+     * @param <K> the type of the elements in the output collection
+     * @return the mapped collection
      */
-    public interface CollectionStorage<K> {
-
-        public void save(BaseCollection<K> collection, Callback<Void> callback);
-
-        public void load(Callback<Collection<K>> callback);
-
-        public Collection<K> loadSync();
-    }
-
-    public interface Callback<K> {
-        public void onFinish(K data);
-    }
-
-    /**
-     * Interface used for filtering elements inside the {@link BaseCollection}
-     *
-     * @param <T> the type of object to filter
-     * @author fernandinho
-     */
-    public interface Filter<T> {
-        public boolean include(T el);
-    }
-
-    /**
-     * Interface used to map a collection to another
-     * @param <T> the map's input type
-     * @param <K> the map's output type
-     */
-    public interface Mapper<T, K> {
-        public K map(T el);
-    }
-
     public static <T, K> List<K> map(Collection<T> collection, Mapper<T, K> mapper) {
         List<K> result = new ArrayList<K>();
         for (T el : collection) {
