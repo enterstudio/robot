@@ -40,7 +40,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
 
     private List<T> list;
     protected Bus bus;
-    protected CollectionStorage<T> storage;
+
 
     /**
      * Lock used to modify the content of {@link #list}. Any write operation
@@ -103,7 +103,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * Removes all data in the inner data structure
+     * Removes all data in the inner data structure.
      */
     public void clear() {
         synchronized (lock) {
@@ -148,50 +148,6 @@ public abstract class BaseCollection<T> implements Iterable<T> {
         if (notifyChanges) {
             notifyChanges();
         }
-    }
-
-    /**
-     * saves the collections objects using the {@link BaseCollection}'s storage
-     */
-    public void save() {
-        storage.save(this, new Callback<Void>() {
-            @Override
-            public void onFinish(Void data) {
-                notifySave();
-            }
-        });
-    }
-
-    /**
-     * Loads and adds all elements obtained by the BaseCollection's storage.
-     * A {@link ModelChangedEvent} is guaranteed to be thrown.
-     */
-    public void load() {
-        load(new Callback<Collection<T>>() {
-            @Override
-            public void onFinish(Collection<T> data) {
-            }
-        });
-    }
-
-    public void load(final Callback<Collection<T>> cb) {
-        storage.load(new Callback<Collection<T>>() {
-            @Override
-            public void onFinish(Collection<T> data) {
-                data = afterLoad(data);
-                addAll(data, true);
-                cb.onFinish(data);
-            }
-        });
-    }
-
-    /**
-     * Similar to {@link #load()} but is guaranteed to run synchronous.
-     */
-    public void loadSync() {
-        Collection<T> data = storage.loadSync();
-        data = afterLoad(data);
-        addAll(data, true);
     }
 
     /**
@@ -388,14 +344,6 @@ public abstract class BaseCollection<T> implements Iterable<T> {
         this.bus = bus;
     }
 
-    /**
-     * Modifies the storage medium for this {@link BaseCollection}
-     *
-     * @param storage
-     */
-    public void setStorage(CollectionStorage<T> storage) {
-        this.storage = storage;
-    }
 
     /**
      * @param el
