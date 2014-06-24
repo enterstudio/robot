@@ -33,14 +33,13 @@ import java.util.List;
  * are going to override the {@link #equals(Object)} it is a best practice to also override the {@link #hashCode()} method, don't worry
  * eclipse can do this for you by clicking Source -> Generate hashCode() and equals()
  *
- * @param <T>
+ * @param <T> the type of data this collection contains
  * @author fernandinho
  */
 public abstract class BaseCollection<T> implements Iterable<T> {
 
     private List<T> list;
     protected Bus bus;
-
 
     /**
      * Lock used to modify the content of {@link #list}. Any write operation
@@ -208,7 +207,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * @param filters
+     * @param filters an array of filters
      * @return let [a1, a2, ..., an]  be the list of all elements in this {@link BaseCollection}'s underlying data structure.
      * <p>
      * this method will return { |a| s.t. "a returns true on every filter" }
@@ -220,33 +219,6 @@ public abstract class BaseCollection<T> implements Iterable<T> {
         synchronized (lock) {
             return filter(list, filters);
         }
-    }
-
-    /**
-     * @param filters a list of filters to be a applied to each element in the collection
-     * @param collection the collection to be filtered upon
-     * @return let [a1, a2, ..., an]  be the list of all elements in this {@link BaseCollection}'s underlying data structure.
-     * <p>
-     * this method will return { |a| s.t. "a returns true on every filter" }
-     * This means that every element will be compared agains every filter and it must pass all filters in order
-     * for it to be added to the result set.
-     * </p>
-     */
-    public static <T> List<T> filter(Collection<T> collection, Filter<T>... filters) {
-        List<T> result = new ArrayList<T>();
-        for (T el : collection) {
-            boolean passedAllFilters = true;
-            for (Filter<T> filter : filters) {
-                if (!filter.include(el)) {
-                    passedAllFilters = false;
-                    break;
-                }
-            }
-            if (passedAllFilters) {
-                result.add(el);
-            }
-        }
-        return result;
     }
 
     /**
@@ -276,7 +248,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     /**
      * Posts an event to the event bus. This can be any event.
      *
-     * @param object
+     * @param object the event.
      */
     public void notifyEvent(Object object) {
         bus.post(object);
@@ -306,7 +278,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     /**
      * Sets the event bus used by this {@link BaseCollection} to publish events.
      *
-     * @param bus
+     * @param bus the bus where events will be posted
      */
     public void setEventBus(Bus bus) {
         this.bus = bus;
@@ -403,6 +375,42 @@ public abstract class BaseCollection<T> implements Iterable<T> {
         return null;
     }
 
+    /**
+     * @param filters a list of filters to be a applied to each element in the collection
+     * @param collection the collection to be filtered upon
+     * @return let [a1, a2, ..., an]  be the list of all elements in this {@link BaseCollection}'s underlying data structure.
+     * <p>
+     * this method will return { |a| s.t. "a returns true on every filter" }
+     * This means that every element will be compared agains every filter and it must pass all filters in order
+     * for it to be added to the result set.
+     * </p>
+     */
+    public static <T> List<T> filter(Collection<T> collection, Filter<T>... filters) {
+        List<T> result = new ArrayList<T>();
+        for (T el : collection) {
+            boolean passedAllFilters = true;
+            for (Filter<T> filter : filters) {
+                if (!filter.include(el)) {
+                    passedAllFilters = false;
+                    break;
+                }
+            }
+            if (passedAllFilters) {
+                result.add(el);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Interface used to map a collection to another
+     * @param <T> the map's input type
+     * @param <K> the map's output type
+     */
+    public interface Mapper<T, K> {
+        public K map(T el);
+    }
+
     public interface Reducer<T, K> {
         public K reduce(K acum, T element);
     }
@@ -412,12 +420,22 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
+     * Interface used for filtering elements inside the {@link BaseCollection}
+     *
+     * @param <T> the type of object to filter
+     * @author fernandinho
+     */
+    public interface Filter<T> {
+        public boolean include(T el);
+    }
+
+    /**
      * Minimal implementation for {@link Filter}, subclasses should compare the given constructor argument
      * with some field/method if the include(T el) param
      *
      * @author fernandinho
      */
-    public abstract class DefFilter implements Filter<T> {
+    public static abstract class DefFilter<T> implements Filter<T> {
 
         protected Object value;
 
