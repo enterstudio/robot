@@ -77,14 +77,29 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * Removes a collection of elements
-     *
-     * @param els
+     * Removes a collection of elements and notifies changes.
+     * This is a shorthand for {@link #removeAll(java.util.Collection, boolean)} with the second parameter set to true
+     * @param els the collection of elements to remove
+     * @see #removeAll(java.util.Collection, boolean)
      */
     public void removeAll(Collection<? extends T> els) {
+        removeAll(els, true);
+    }
+
+    /**
+     * Removes a collection of elements, optionally notifies changes
+     * @param els the collection of elements to remove
+     * @param notifyChanges if true, changes will be notified, if false, no changes will be notified.
+     *                      Note that changes will only be notified if there are elements removed from the
+     *                      BaseCollection, i.e. if {@code els} is an empty collection, then no changes
+     *                      will be notified even if {@code notifyChanges} is true
+     */
+    public void removeAll(Collection<? extends T> els, boolean notifyChanges) {
+        boolean changes = false;
         synchronized (lock) {
-            list.removeAll(els);
+            changes = list.removeAll(els);
         }
+        if(changes && notifyChanges) notifyChanges();
     }
 
     /**
