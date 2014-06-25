@@ -47,9 +47,13 @@ public abstract class BaseCollection<T> implements Iterable<T> {
      */
     protected final Object lock = new Object();
 
+    /**
+     * When creating an instance of BaseCollection be aware that you must configure the event bus to connect with your global event bus instance.
+     * To do this simply call {@code baseColleciton.setEventBus(youEventBus)}
+     */
     public BaseCollection() {
-        Collections.synchronizedList(null);
         list = new ArrayList<T>();
+        bus = new Bus();
     }
 
     /**
@@ -57,7 +61,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
      *
      * Object equality comparison is done using the {@link #equals(Object)} method
      *
-     * @param data
+     * @param data a collection of T object that will be updated. If not present, it will be added.
      * @param notify if notifyEvent is true, a {@link ModelChangedEvent} will be published after all the data has been added to the BaseCollection.
      */
     public void updateAll(Collection<? extends T> data, boolean notify) {
@@ -68,7 +72,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     /**
      * Removes a given element. If you wish to remove more than one the recommended way to do this is by using {@link #removeAll(java.util.Collection)}
      *
-     * @param el
+     * @param el the element to remove. Removal is based on the {@code equals} method.
      */
     public void remove(T el) {
         synchronized (lock){
@@ -134,14 +138,15 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     /**
      * Iterates over the given {@link Iterable} and adds every element. Optionally publishes a {@link ModelChangedEvent}
      *
-     * @param el
-     * @param notifyChanges
+     * @param el the elements that will be added
+     * @param notifyChanges if true, changes will be notified, if false, no changes will be notified.
      */
     public void addAll(Iterable<? extends T> el, boolean notifyChanges) {
+        int originalSize = size();
         for (T t : el) {
             add(t, false);
         }
-        if (notifyChanges) {
+        if (notifyChanges && size() > originalSize) {
             notifyChanges();
         }
     }
@@ -149,8 +154,8 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     /**
      * Adds the given element to the BaseCollection. Optionally publishes a {@link ModelChangedEvent}
      *
-     * @param el
-     * @param notifyChanges
+     * @param el the element that will be added.
+     * @param notifyChanges if true, changes will be notified, if false, no changes will be notified.
      */
     public void add(T el, boolean notifyChanges) {
         synchronized (lock) {
@@ -172,9 +177,8 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     }
 
     /**
-     * Runs an iterator through every element in the BaseModel
-     *
-     * @param iterator
+     * Runs an iterator through every element in the BaseModel. Order is not guaranteed.
+     * @param iterator the iterator interface.
      */
     public void each(Iter<T> iterator) {
         for (T el : list) {
@@ -251,7 +255,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
     /**
      * publishes an {@link ErrorCapturedEvent}
      *
-     * @param error
+     * @param error the event to publish
      */
     public void notifyError(Throwable error) {
         notifyEvent(new ErrorCapturedEvent(error));
@@ -298,7 +302,7 @@ public abstract class BaseCollection<T> implements Iterable<T> {
 
 
     /**
-     * @param el
+     * @param el the element 
      * @return Returns true if the underlying collection contains the given element.
      */
     public boolean contains(T el) {
