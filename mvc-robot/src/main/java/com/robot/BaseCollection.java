@@ -49,7 +49,8 @@ public abstract class BaseCollection<T> implements Iterable<T> {
 
     /**
      * When creating an instance of BaseCollection be aware that you must configure the event bus to connect with your global event bus instance.
-     * To do this simply call {@code baseColleciton.setEventBus(youEventBus)}
+     * To do this simply call {@code baseCollection.setEventBus(youEventBus)}.
+     * You may also configure the underlying data structure by calling {@code setList()}
      */
     public BaseCollection() {
         list = new ArrayList<T>();
@@ -300,9 +301,17 @@ public abstract class BaseCollection<T> implements Iterable<T> {
         this.bus = bus;
     }
 
+    /**
+     * Sets the underlying data structure.
+     * @param list the replacement for the default list.
+     */
+    public void setList(List<T> list){
+        this.list = list;
+    }
+
 
     /**
-     * @param el the element 
+     * @param el the element
      * @return Returns true if the underlying collection contains the given element.
      */
     public boolean contains(T el) {
