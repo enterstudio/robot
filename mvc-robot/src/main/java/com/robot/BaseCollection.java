@@ -174,7 +174,9 @@ public abstract class BaseCollection<T> implements Iterable<T> {
      * @return the list of mapped elements.
      */
     public <K> List<K> map(Mapper<T, K> mapper) {
-        return map(list, mapper);
+        synchronized (lock){
+            return map(list, mapper);
+        }
     }
 
     /**
@@ -193,11 +195,9 @@ public abstract class BaseCollection<T> implements Iterable<T> {
      * @return the calculated reductions
      */
     public <K> K reduce(K initialValue, Reducer<T, K> reducer) {
-        K reduction = initialValue;
-        for (T el : list) {
-            reduction = reducer.reduce(reduction, el);
+        synchronized (lock){
+            return reduce(initialValue, reducer, list);
         }
-        return reduction;
     }
 
     /**
@@ -408,6 +408,19 @@ public abstract class BaseCollection<T> implements Iterable<T> {
             }
         }
         return result;
+    }
+
+    /**
+     * @param initialValue the initial value to be reduced
+     * @param reducer      an interface used to reduce the list
+     * @return the calculated reductions
+     */
+    public static <T,K> K reduce(K initialValue, Reducer<T, K> reducer, Collection<T> list) {
+        K reduction = initialValue;
+        for (T el : list) {
+            reduction = reducer.reduce(reduction, el);
+        }
+        return reduction;
     }
 
     //======================================================================
